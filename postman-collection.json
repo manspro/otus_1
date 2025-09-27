@@ -1,0 +1,432 @@
+{
+  "info": {
+    "name": "OTUS Dating App Monolith",
+    "description": "API коллекция для тестирования dating-приложения",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    },
+    {
+      "key": "friend_id",
+      "value": ""
+    },
+    {
+      "key": "post_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('user_id', response.user_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Иван\",\n  \"second_name\": \"Иванов\",\n  \"birthdate\": \"1990-01-01\",\n  \"biography\": \"Люблю программировать и путешествовать\",\n  \"city\": \"Москва\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/register",
+              "host": ["{{base_url}}"],
+              "path": ["user", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register Second User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('friend_id', response.user_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Мария\",\n  \"second_name\": \"Петрова\",\n  \"birthdate\": \"1992-05-15\",\n  \"biography\": \"Дизайнер и любитель искусства\",\n  \"city\": \"Санкт-Петербург\",\n  \"password\": \"password456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user/register",
+              "host": ["{{base_url}}"],
+              "path": ["user", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('auth_token', response.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{user_id}}\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": ["{{base_url}}"],
+              "path": ["login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/user/get/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["user", "get", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Search Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/user/search?first_name=Ив&last_name=Ив",
+              "host": ["{{base_url}}"],
+              "path": ["user", "search"],
+              "query": [
+                {
+                  "key": "first_name",
+                  "value": "Ив"
+                },
+                {
+                  "key": "last_name",
+                  "value": "Ив"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Friends",
+      "item": [
+        {
+          "name": "Add Friend",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/friend/set/{{friend_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["friend", "set", "{{friend_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Remove Friend",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/friend/delete/{{friend_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["friend", "delete", "{{friend_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "Create Post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('post_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Привет всем! Это мой первый пост в нашем dating-приложении. Ищу интересных людей для общения!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/post/create",
+              "host": ["{{base_url}}"],
+              "path": ["post", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get Post",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/post/get/{{post_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["post", "get", "{{post_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Post",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{post_id}}\",\n  \"text\": \"Обновленный пост: Привет всем! Это мой обновленный пост. Ищу друзей для интересного общения и совместных прогулок!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/post/update",
+              "host": ["{{base_url}}"],
+              "path": ["post", "update"]
+            }
+          }
+        },
+        {
+          "name": "Get Feed",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/post/feed?offset=0&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["post", "feed"],
+              "query": [
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Post",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "url": {
+              "raw": "{{base_url}}/post/delete/{{post_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["post", "delete", "{{post_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dialogs",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Привет! Как дела? Хочу познакомиться поближе!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/dialog/{{friend_id}}/send",
+              "host": ["{{base_url}}"],
+              "path": ["dialog", "{{friend_id}}", "send"]
+            }
+          }
+        },
+        {
+          "name": "Get Dialog Messages",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/dialog/{{friend_id}}/list",
+              "host": ["{{base_url}}"],
+              "path": ["dialog", "{{friend_id}}", "list"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
