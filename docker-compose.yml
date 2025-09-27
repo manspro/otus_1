@@ -1,0 +1,36 @@
+services:
+  # Основное приложение (монолит) - проксирует диалоги к dialog-service
+  dating-app-monolith:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - JWT_SECRET=your-secret-key-here
+      - DIALOG_SERVICE_URL=http://dialog-service:3001
+    depends_on:
+      - dialog-service
+    volumes:
+      - ./database.sqlite:/app/database.sqlite
+    networks:
+      - dating-network
+
+  # Микросервис диалогов - только диалоги
+  dialog-service:
+    build:
+      context: ./dialog-service
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    networks:
+      - dating-network
+
+networks:
+  dating-network:
+    driver: bridge

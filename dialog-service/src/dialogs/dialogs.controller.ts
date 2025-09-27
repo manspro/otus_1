@@ -1,23 +1,30 @@
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Param,
+  Headers,
+  UnauthorizedException,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
   ApiParam,
+  ApiHeader,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { DialogProxyService } from '../dialog-proxy/dialog-proxy.service';
-import { SendMessageDto, DialogMessageDto } from '../dto/dialog.dto';
-import { GetUser } from '../decorators/get-user.decorator';
-import { User } from '../entities/user.entity';
+import { DialogsService } from './dialogs.service';
+import {
+  SendMessageDto,
+  DialogMessageDto,
+  DialogListDto,
+} from '../dto/dialog.dto';
 
 @ApiTags('Dialogs')
 @Controller('dialog')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
 export class DialogsController {
-  constructor(private readonly dialogProxyService: DialogProxyService) {}
+  constructor(private readonly dialogsService: DialogsService) {}
 
   @Post(':user_id/send')
   @ApiOperation({ summary: 'Отправить сообщение пользователю' })
@@ -25,21 +32,36 @@ export class DialogsController {
     name: 'user_id',
     description: 'Идентификатор получателя сообщения',
   })
+  @ApiHeader({
+    name: 'x-user-id',
+    description: 'Идентификатор отправителя (из монолита)',
+  })
   @ApiResponse({ status: 200, description: 'Успешно отправлено сообщение' })
   @ApiResponse({ status: 400, description: 'Невалидные данные' })
   @ApiResponse({ status: 401, description: 'Неавторизованный доступ' })
   async sendMessage(
     @Param('user_id') toUserId: string,
     @Body() sendMessageDto: SendMessageDto,
-    @GetUser() user: User,
+    @Headers('x-user-id') fromUserId: string,
   ): Promise<void> {
-    // ПРОКСИРОВАНИЕ: Запрос перенаправляется к dialog-service
-    return this.dialogProxyService.sendMessage(sendMessageDto, user.id, toUserId);
+    if (!fromUserId) {
+      throw new UnauthorizedException('Missing user ID in headers');
+    }
+
+    return this.dialogsService.sendMessage(
+      sendMessageDto,
+      fromUserId,
+      toUserId,
+    );
   }
 
   @Get(':user_id/list')
   @ApiOperation({ summary: 'Получить диалог между двумя пользователями' })
   @ApiParam({ name: 'user_id', description: 'Идентификатор собеседника' })
+  @ApiHeader({
+    name: 'x-user-id',
+    description: 'Идентификатор текущего пользователя (из монолита)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Диалог между двумя пользователями',
@@ -49,21 +71,34 @@ export class DialogsController {
   @ApiResponse({ status: 401, description: 'Неавторизованный доступ' })
   async getDialogMessages(
     @Param('user_id') otherUserId: string,
-    @GetUser() user: User,
+    @Headers('x-user-id') currentUserId: string,
   ): Promise<DialogMessageDto[]> {
-    // ПРОКСИРОВАНИЕ: Запрос перенаправляется к dialog-service
-    return this.dialogProxyService.getDialogMessages(user.id, otherUserId);
+    if (!currentUserId) {
+      throw new UnauthorizedException('Missing user ID in headers');
+    }
+
+    return this.dialogsService.getDialogMessages(currentUserId, otherUserId);
   }
 
   @Get('list')
   @ApiOperation({ summary: 'Получить список всех диалогов пользователя' })
+  @ApiHeader({
+    name: 'x-user-id',
+    description: 'Идентификатор пользователя (из монолита)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Список диалогов пользователя',
+    type: [DialogListDto],
   })
   @ApiResponse({ status: 401, description: 'Неавторизованный доступ' })
-  async getUserDialogs(@GetUser() user: User): Promise<any[]> {
-    // ПРОКСИРОВАНИЕ: Запрос перенаправляется к dialog-service
-    return this.dialogProxyService.getUserDialogs(user.id);
+  async getUserDialogs(
+    @Headers('x-user-id') userId: string,
+  ): Promise<DialogListDto[]> {
+    if (!userId) {
+      throw new UnauthorizedException('Missing user ID in headers');
+    }
+
+    return this.dialogsService.getUserDialogs(userId);
   }
 }

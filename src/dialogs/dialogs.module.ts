@@ -1,14 +1,9 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { DialogsController } from './dialogs.controller';
-import { DialogsService } from './dialogs.service';
-import { DialogMessage } from '../entities/dialog-message.entity';
-import { User } from '../entities/user.entity';
+import { DialogProxyModule } from '../dialog-proxy/dialog-proxy.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DialogMessage, User])],
+  imports: [DialogProxyModule],
   controllers: [DialogsController],
-  providers: [DialogsService],
-  exports: [DialogsService],
 })
 export class DialogsModule {}
