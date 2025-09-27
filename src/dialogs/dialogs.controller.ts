@@ -33,7 +33,6 @@ export class DialogsController {
     @Body() sendMessageDto: SendMessageDto,
     @GetUser() user: User,
   ): Promise<void> {
-    // ПРОКСИРОВАНИЕ: Запрос перенаправляется к dialog-service
     return this.dialogProxyService.sendMessage(sendMessageDto, user.id, toUserId);
   }
 
@@ -51,7 +50,6 @@ export class DialogsController {
     @Param('user_id') otherUserId: string,
     @GetUser() user: User,
   ): Promise<DialogMessageDto[]> {
-    // ПРОКСИРОВАНИЕ: Запрос перенаправляется к dialog-service
     return this.dialogProxyService.getDialogMessages(user.id, otherUserId);
   }
 
@@ -63,7 +61,6 @@ export class DialogsController {
   })
   @ApiResponse({ status: 401, description: 'Неавторизованный доступ' })
   async getUserDialogs(@GetUser() user: User): Promise<any[]> {
-    // ПРОКСИРОВАНИЕ: Запрос перенаправляется к dialog-service
     return this.dialogProxyService.getUserDialogs(user.id);
   }
 }
